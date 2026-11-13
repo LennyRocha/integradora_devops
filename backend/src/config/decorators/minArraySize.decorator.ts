@@ -4,7 +4,7 @@ import {
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
-} from "class-validator";
+} from 'class-validator';
 
 export function MinArraySize<T = unknown>(
   minSize: number,
@@ -12,7 +12,7 @@ export function MinArraySize<T = unknown>(
 ) {
   return function (object: object, propertyName: string) {
     registerDecorator({
-      name: "minArraySize",
+      name: 'minArraySize',
       target: object.constructor,
       propertyName,
       options: validationOptions,

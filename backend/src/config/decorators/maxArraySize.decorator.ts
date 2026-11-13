@@ -4,7 +4,7 @@ import {
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
-} from "class-validator";
+} from 'class-validator';
 
 export function MaxArraySize<T = unknown>(
   maxSize: number,
@@ -12,7 +12,7 @@ export function MaxArraySize<T = unknown>(
 ) {
   return function (object: object, propertyName: string) {
     registerDecorator({
-      name: "maxArraySize",
+      name: 'maxArraySize',
       target: object.constructor,
       propertyName,
       options: validationOptions,
