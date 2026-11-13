@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { AppController } from './app.controller';
 import { HttpExceptionFilter } from './config/interceptors/http-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
+import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { MultimediaModule } from './multimedia/multimedia.module';
 import { BitacoraModule } from './bitacora/bitacora.module';
@@ -13,6 +14,21 @@ import { BitacoraModule } from './bitacora/bitacora.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.DEBUG === 'true' ? 'debug' : 'info',
+        transport:
+          process.env.DEBUG === 'true'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  translateTime: 'SYS:standard',
+                },
+              }
+            : undefined,
+      },
     }),
     MongooseModule.forRoot(
       process.env.MONGODB_URI || 'mongodb://localhost:27017/taller_db',
