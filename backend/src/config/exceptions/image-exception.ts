@@ -1,0 +1,7 @@
+export class ImageException extends Error {
+  constructor(message: string, cause?: unknown) {
+    super(message, { cause });
+
+    this.name = ImageException.name;
+  }
+}
