@@ -128,9 +128,13 @@ export class UsuariosService {
       }
 
       const uploaded = foto
-        ? await this.fileService.uploadImage(foto, {
-            folder: 'usuarios',
-          })
+        ? await this.fileService.uploadImage(
+            foto,
+            {
+              folder: 'usuarios',
+            },
+            `${payload.nombre.split(' ')[0]}_${payload.apellidoP}_${Date.now()}`,
+          )
         : undefined;
 
       let data: UsuarioDocument;
@@ -254,10 +258,20 @@ export class UsuariosService {
         throw new NotFoundException('Usuario no encontrado');
       }
 
+      const name = payload.nombre ? payload.nombre : existing.nombre;
+      const surname = payload.apellidoP
+        ? payload.apellidoP
+        : existing.apellidoP;
+      const filename = `${name.split(' ')[0]}_${surname}_${Date.now()}`;
+
       const uploaded = foto
-        ? await this.fileService.uploadImage(foto, {
-            folder: 'usuarios',
-          })
+        ? await this.fileService.uploadImage(
+            foto,
+            {
+              folder: 'usuarios',
+            },
+            filename,
+          )
         : undefined;
 
       let data: UsuarioDocument | null;

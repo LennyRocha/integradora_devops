@@ -26,6 +26,7 @@ export class MultimediaService {
   async uploadImage(
     file: MulterFile,
     options: UploadOptions,
+    filename: string,
   ): Promise<UploadedImage> {
     return new Promise((resolve, reject) => {
       this.validateFile(file);
@@ -34,6 +35,7 @@ export class MultimediaService {
         {
           folder: `taller/${options.folder}`,
           resource_type: 'image',
+          public_id: filename,
           transformation: options.transformation
             ? [
                 {
