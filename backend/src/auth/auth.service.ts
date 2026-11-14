@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { Model, Error as MongoError } from 'mongoose';
+import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Usuario, UsuarioDocument } from 'src/usuarios/entity/usuario.schema';
 import {
@@ -12,8 +13,8 @@ import { randomUUID } from 'node:crypto';
 import { RefreshToken } from './schema/refresh-token.schema';
 import { hashOpaqueToken, newOpaqueToken } from './helpers/auth.helpers';
 import { ApiResponse } from 'src/config/api.response';
-import { MongoException } from 'src/config/exceptions/mongo-exception';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { handleError } from 'src/config/utils/handle-error';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +39,7 @@ export class AuthService {
       const email = correo.toLowerCase().trim();
       const password = contrasena.trim();
       const user = await this.userModel.findOne({ correo: email });
+
       if (!user) {
         throw new UnauthorizedException('Credenciales inválidas');
       }
@@ -47,15 +49,16 @@ export class AuthService {
       if (!ok || !user.status) {
         throw new UnauthorizedException('Credenciales inválidas');
       }
+
       this.logger.info('Inicio de sesión exitoso', { userId: user._id });
       return this.issueSession(user, randomUUID());
     } catch (error) {
-      this.logger.error('Error en el inicio de sesión', error);
-      if (error instanceof MongoError) {
-        throw new MongoException(error.message, error.name, error);
+      if (error instanceof UnauthorizedException) {
+        this.logger.warn('Intento de inicio de sesión rechazado');
       } else {
-        throw error;
+        this.logger.error({ err: error }, 'Error en el inicio de sesión');
       }
+      handleError(error);
     }
   }
 
@@ -154,18 +157,19 @@ export class AuthService {
       this.logger.info('Refresh de token exitoso', { userId: usuario._id });
       return this.issueSession(usuario, stored.sessionId, nextRefreshToken);
     } catch (error) {
-      this.logger.error('Error en el refresh de token', error);
-      if (error instanceof MongoError) {
-        throw new MongoException(error.message, error.name, error);
+      if (error instanceof UnauthorizedException) {
+        this.logger.warn('Intento de refresh de token rechazado');
+      } else {
+        this.logger.error({ err: error }, 'Error en el refresh de token');
       }
-
-      throw error;
+      handleError(error);
     }
   }
 
   async logout(refreshToken: string | undefined) {
     this.logger.info('Intento de cierre de sesión');
     if (!refreshToken) {
+      this.logger.info('Cierre de sesión exitoso');
       return ApiResponse.success({ loggedOut: true }, 'Sesión cerrada', 200);
     }
 
@@ -188,17 +192,20 @@ export class AuthService {
         );
       }
 
-      this.logger.info('Cierre de sesión exitoso', {
-        sessionId: stored?.sessionId,
-      });
+      this.logger.info(
+        {
+          sessionId: stored?.sessionId,
+        },
+        'Cierre de sesión exitoso',
+      );
       return ApiResponse.success({ loggedOut: true }, 'Sesión cerrada', 200);
     } catch (error) {
-      this.logger.error('Error en el cierre de sesión', error);
-      if (error instanceof MongoError) {
-        throw new MongoException(error.message, error.name, error);
+      if (error instanceof UnauthorizedException) {
+        this.logger.warn('Intento de cierre de sesión rechazado');
       } else {
-        throw error;
+        this.logger.error({ err: error }, 'Error en el cierre de sesión');
       }
+      handleError(error);
     }
   }
 
