@@ -11,7 +11,7 @@ import { HasRol } from 'src/config/decorators/has-rol.decorator';
 export class BitacoraController {
   constructor(private readonly service: BitacoraService) {}
 
-  @HasRol(['admin'])
+  @HasRol(['administrador'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultar la bitácora de auditoría' })
   @Get()
