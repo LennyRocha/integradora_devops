@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 import Rol from './rol';
 import { type MongoImage } from 'src/utils/mongo.image';
 import { MongoImageSchema } from 'src/utils/mongo.image.schema';
@@ -23,6 +23,9 @@ export class Usuario {
   @Prop({ required: true })
   contra!: string;
 
+  @Prop({ required: false, unique: true, maxLength: 15 })
+  telefono?: string;
+
   @Prop({ required: true, enum: Rol })
   rol!: Rol;
 
@@ -35,6 +38,12 @@ export class Usuario {
 
   @Prop({ default: true })
   status: boolean = true;
+
+  @Prop({ type: Types.ObjectId, ref: 'Usuario', name: 'created_by' })
+  createdBy?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Usuario', name: 'updated_by' })
+  updatedBy?: Types.ObjectId;
 }
 
 export const UsuarioSchema = SchemaFactory.createForClass(Usuario);

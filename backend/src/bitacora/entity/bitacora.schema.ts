@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { Usuario } from 'src/usuarios/entity/usuario.schema';
 
@@ -16,3 +16,5 @@ export class Bitacora {
   @Prop({ required: false })
   ipOrigen?: string;
 }
+
+export const BitacoraSchema = SchemaFactory.createForClass(Bitacora);

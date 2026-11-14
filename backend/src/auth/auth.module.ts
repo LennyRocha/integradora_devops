@@ -41,6 +41,6 @@ import { MongooseModule } from '@nestjs/mongoose';
     { provide: APP_GUARD, useClass: RolGuard },
   ],
   controllers: [AuthController],
-  exports: [PassportModule, AuthService, PASSWORD_HASHER],
+  exports: [PassportModule, AuthService],
 })
 export class AuthModule {}

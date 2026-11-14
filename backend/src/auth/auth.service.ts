@@ -220,7 +220,7 @@ export class AuthService {
       sub: usuario._id.toString(),
       tid: currentSessionId,
       email: usuario.correo,
-      role: String(usuario.rol),
+      rol: String(usuario.rol),
     });
 
     const refreshToken = rotatedRefreshToken ?? newOpaqueToken();

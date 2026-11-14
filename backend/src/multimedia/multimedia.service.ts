@@ -32,7 +32,7 @@ export class MultimediaService {
 
       const uploadStream = this.cloudinary.uploader.upload_stream(
         {
-          folder: options.folder,
+          folder: `taller/${options.folder}`,
           resource_type: 'image',
           transformation: options.transformation
             ? [

@@ -9,7 +9,7 @@ export interface TokenSignerPort {
     tid: string;
     sub: string;
     email: string;
-    role: string;
+    rol: string;
   }): Promise<string>;
   verifyAccess(token: string): Promise<AccessTokenClaims & { exp: number }>;
 }

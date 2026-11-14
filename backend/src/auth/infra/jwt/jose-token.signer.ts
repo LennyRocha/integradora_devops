@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { SignJWT, importPKCS8, jwtVerify } from 'jose';
+import { SignJWT, importPKCS8, importSPKI, jwtVerify } from 'jose';
 import { AccessTokenClaims } from 'src/auth/interfaces/access-token-claims';
 import { TokenSignerPort } from 'src/auth/interfaces/token-ports';
 
@@ -13,7 +13,7 @@ export class JoseTokenSigner implements TokenSignerPort {
     sub: string;
     tid: string;
     email: string;
-    role: string;
+    rol: string;
   }): Promise<string> {
     const privateKey = Buffer.from(
       process.env.JWT_PRIVATE_KEY!,
@@ -29,7 +29,7 @@ export class JoseTokenSigner implements TokenSignerPort {
     return new SignJWT({
       tid: payload.tid,
       email: payload.email,
-      role: payload.role,
+      rol: payload.rol,
     })
       .setProtectedHeader({ alg: this.algorithm })
       .setSubject(payload.sub)
@@ -53,7 +53,7 @@ export class JoseTokenSigner implements TokenSignerPort {
       throw new UnauthorizedException('JWT_PUBLIC_KEY no está configurada');
     }
 
-    const key = await importPKCS8(publicKey, this.algorithm);
+    const key = await importSPKI(publicKey, this.algorithm);
     const { payload } = await jwtVerify(token, key, {
       algorithms: [this.algorithm],
       issuer: this.issuer,
@@ -65,8 +65,7 @@ export class JoseTokenSigner implements TokenSignerPort {
       !payload.exp ||
       typeof payload.tid !== 'string' ||
       typeof payload.email !== 'string' ||
-      !Array.isArray(payload.roles) ||
-      !Array.isArray(payload.privileges)
+      typeof payload.rol !== 'string'
     ) {
       throw new UnauthorizedException('JWT sin claims de acceso requeridos');
     }
@@ -74,7 +73,7 @@ export class JoseTokenSigner implements TokenSignerPort {
       sub: payload.sub,
       tid: payload.tid,
       email: payload.email,
-      rol: payload.roles[0] as string,
+      rol: payload.rol,
       jti: payload.jti,
       exp: payload.exp,
     };
