@@ -424,10 +424,7 @@ export class UsuariosService implements ICrudRepository {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      return ApiResponse.success(
-        { status: existing.status },
-        'Estado de usuario recuperado correctamente',
-      );
+      return { status: existing.status };
     } catch (error) {
       this.logger.error(
         { err: error },

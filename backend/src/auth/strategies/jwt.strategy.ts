@@ -33,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('Token revocado');
     }
     const isActive = await this.service.isUserActive(payload.sub);
-    if (!isActive) {
+    if (!isActive?.status) {
       throw new UnauthorizedException('Usuario inactivo o no encontrado');
     }
     return payload;
