@@ -6,7 +6,9 @@ import { Usuario, UsuarioDocument } from 'src/usuarios/entity/usuario.schema';
 import {
   PASSWORD_HASHER,
   type PasswordHasherPort,
+  TOKEN_DENYLIST,
   TOKEN_SIGNER,
+  type TokenDenylistPort,
   type TokenSignerPort,
 } from './interfaces/token-ports';
 import { randomUUID } from 'node:crypto';
@@ -15,6 +17,7 @@ import { hashOpaqueToken, newOpaqueToken } from './helpers/auth.helpers';
 import { ApiResponse } from 'src/config/api.response';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { handleError } from 'src/config/utils/handle-error';
+import { AccessTokenClaims } from './interfaces/access-token-claims';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +27,7 @@ export class AuthService {
     private readonly refreshTokenModel: Model<RefreshToken>,
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasherPort,
     @Inject(TOKEN_SIGNER) private readonly tokens: TokenSignerPort,
+    @Inject(TOKEN_DENYLIST) private readonly denylist: TokenDenylistPort,
     @InjectPinoLogger(AuthService.name)
     private readonly logger: PinoLogger,
   ) {}
@@ -166,8 +170,27 @@ export class AuthService {
     }
   }
 
-  async logout(refreshToken: string | undefined) {
+  async logout(
+    accessToken: string | undefined,
+    refreshToken: string | undefined,
+  ) {
     this.logger.info('Intento de cierre de sesión');
+
+    if (accessToken) {
+      let claims: AccessTokenClaims | null = null;
+      try {
+        claims = await this.tokens.verifyAccess(accessToken);
+      } catch (error) {
+        if (!(error instanceof UnauthorizedException)) {
+          throw error;
+        }
+      }
+
+      if (claims) {
+        await this.denylist.revoke(claims.jti, new Date(claims.exp * 1000));
+      }
+    }
+
     if (!refreshToken) {
       this.logger.info('Cierre de sesión exitoso');
       return ApiResponse.success({ loggedOut: true }, 'Sesión cerrada', 200);

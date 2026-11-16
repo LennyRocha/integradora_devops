@@ -4,4 +4,5 @@ export interface AccessTokenClaims {
   email: string;
   rol: string;
   jti: string;
+  exp: number;
 }

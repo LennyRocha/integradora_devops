@@ -1,5 +1,5 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, Post, Headers } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto, LogoutDto, RefreshDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { Public } from '../config/decorators/public.decorator';
@@ -16,11 +16,17 @@ export class AuthController {
     return this.service.login(body.correo, body.contrasena);
   }
 
-  @Public()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cerrar sesión' })
   @Post('logout')
-  logout(@Body() dto: LogoutDto) {
-    return this.service.logout(dto.refreshToken);
+  logout(
+    @Headers('authorization') authorization: string | undefined,
+    @Body() dto: LogoutDto,
+  ) {
+    const access = authorization?.startsWith('Bearer ')
+      ? authorization.slice(7)
+      : undefined;
+    return this.service.logout(access, dto.refreshToken);
   }
 
   @Public()

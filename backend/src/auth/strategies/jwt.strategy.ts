@@ -1,12 +1,19 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AccessTokenClaims } from '../interfaces/access-token-claims';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
+import {
+  TOKEN_DENYLIST,
+  type TokenDenylistPort,
+} from '../interfaces/token-ports';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(private readonly service: UsuariosService) {
+  constructor(
+    private readonly service: UsuariosService,
+    @Inject(TOKEN_DENYLIST) private readonly denylist: TokenDenylistPort,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -20,11 +27,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: AccessTokenClaims) {
+    const revoked = await this.denylist.isRevoked(payload.jti);
+
+    if (revoked) {
+      throw new UnauthorizedException('Token revocado');
+    }
     const isActive = await this.service.isUserActive(payload.sub);
     if (!isActive) {
       throw new UnauthorizedException('Usuario inactivo o no encontrado');
     }
-    //TODO Buscar el token denylist cuando esté disponible
     return payload;
   }
 }
