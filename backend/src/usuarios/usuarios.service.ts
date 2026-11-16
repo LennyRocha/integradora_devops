@@ -18,9 +18,10 @@ import {
   PASSWORD_HASHER,
   type PasswordHasherPort,
 } from 'src/auth/interfaces/token-ports';
+import ICrudRepository from 'src/utils/crud-repository';
 
 @Injectable()
-export class UsuariosService {
+export class UsuariosService implements ICrudRepository {
   constructor(
     @InjectModel(Usuario.name)
     private readonly usuarioModel: Model<Usuario>,
@@ -64,49 +65,17 @@ export class UsuariosService {
   }
 
   /**
-   * Obtiene el perfil de un usuario.
-   * @param user - Las credenciales del usuario.
-   */
-  async findProfile(user: AccessTokenClaims) {
-    try {
-      this.logger.info('Obteniendo el perfil de un usuario');
-      const data = await this.usuarioModel.findById(user.sub);
-      if (!data) {
-        throw new NotFoundException('Usuario no encontrado');
-      }
-      const response = {
-        _id: data?._id,
-        nombre: data?.nombre,
-        apellidoP: data?.apellidoP,
-        apellidoM: data?.apellidoM,
-        correo: data?.correo,
-        telefono: data?.telefono,
-        rol: data?.rol,
-        perfilFoto: data?.perfilFoto,
-        status: data?.status,
-      };
-      return ApiResponse.success(response, 'Perfil obtenido correctamente');
-    } catch (error) {
-      this.logger.error(
-        { err: error },
-        'Error al obtener el perfil del usuario',
-      );
-      handleError(error);
-    }
-  }
-
-  /**
    * Administra la creación de un nuevo usuario.
-   * @param user - Las credenciales del usuario que realiza la acción.
    * @param payload - Los datos del nuevo usuario.
-   * @param foto - La imagen del perfil del usuario.
+   * @param user - Las credenciales del usuario que realiza la acción.
    * @param ip - La dirección IP del cliente.
+   * @param foto - La imagen del perfil del usuario.
    */
-  async insertOne(
-    user: AccessTokenClaims,
+  async insert(
     payload: CreateUserDto,
-    foto?: MulterFile,
+    user: AccessTokenClaims,
     ip?: string,
+    foto?: MulterFile,
   ) {
     try {
       this.logger.info('Insertando un nuevo usuario');
@@ -161,7 +130,7 @@ export class UsuariosService {
 
       await this.auditService.auditar({
         usuario: new Types.ObjectId(user.sub),
-        accion: `Creación de usuario ${data._id.toString()}`,
+        accion: `Creación de usuario ${data._id.toString()} por ${user.sub}`,
         tipo: 'INSERT',
         ipOrigen: ip,
       });
@@ -177,15 +146,15 @@ export class UsuariosService {
 
   /**
    * Administador actualiza un usuario existente.
-   * @param user - Las credenciales del usuario que realiza la acción.
    * @param id - El ID del usuario a actualizar.
    * @param payload - Los datos a actualizar.
+   *  @param user - Las credenciales del usuario que realiza la acción.
    * @param ip - La dirección IP del cliente.
    */
-  async patchOne(
-    user: AccessTokenClaims,
+  async update(
     id: string,
     payload: UpdateUserDto,
+    user: AccessTokenClaims,
     ip?: string,
   ) {
     try {
@@ -228,13 +197,89 @@ export class UsuariosService {
   }
 
   /**
+   * El administrador actualiza el estado de otro usuario (activo/inactivo).
+   * @param id - El ID del usuario a actualizar.
+   * @param user - Las credenciales del usuario que realiza la acción.
+   * @param ip - La dirección IP del cliente.
+   */
+  async toggleStatus(id: string, user: AccessTokenClaims, ip?: string) {
+    try {
+      this.logger.info('Actualizando estado de usuario');
+      const existing = await this.usuarioModel.findById(id);
+
+      if (!existing) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      await this.usuarioModel.findByIdAndUpdate(
+        id,
+        {
+          status: !existing.status,
+          updatedBy: user.sub,
+        },
+        { new: true },
+      );
+
+      await this.auditService.auditar({
+        usuario: new Types.ObjectId(user.sub),
+        accion: `Usuario ${user.sub} actualizó el estado de usuario ${id.toString()}`,
+        tipo: 'UPDATE',
+        ipOrigen: ip,
+      });
+
+      return ApiResponse.success(
+        { status: !existing.status },
+        'Estado de usuario actualizado correctamente',
+      );
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al actualizar el estado del usuario',
+      );
+      handleError(error);
+    }
+  }
+
+  /**
+   * Obtiene el perfil de un usuario.
+   * @param user - Las credenciales del usuario.
+   */
+  async findProfile(user: AccessTokenClaims) {
+    try {
+      this.logger.info('Obteniendo el perfil de un usuario');
+      const data = await this.usuarioModel.findById(user.sub);
+      if (!data) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      const response = {
+        _id: data?._id,
+        nombre: data?.nombre,
+        apellidoP: data?.apellidoP,
+        apellidoM: data?.apellidoM,
+        correo: data?.correo,
+        telefono: data?.telefono,
+        rol: data?.rol,
+        perfilFoto: data?.perfilFoto,
+        status: data?.status,
+      };
+      return ApiResponse.success(response, 'Perfil obtenido correctamente');
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al obtener el perfil del usuario',
+      );
+      handleError(error);
+    }
+  }
+
+  /**
    * Un usuario actualiza su perfil.
    * @param user - Las credenciales del usuario que realiza la acción.
    * @param payload - Los datos a actualizar.
    * @param foto - La imagen del perfil del usuario.
    * @param ip - La dirección IP del cliente.
    */
-  async patchProfile(
+  async updateProfile(
     user: AccessTokenClaims,
     payload: UpdateUserDto,
     foto?: MulterFile,
@@ -328,7 +373,7 @@ export class UsuariosService {
    * @param payload - La nueva contraseña.
    * @param ip - La dirección IP del cliente.
    */
-  async patchPassword(
+  async updatePassword(
     user: AccessTokenClaims,
     payload: UpdatePasswordDto,
     ip?: string,
@@ -367,39 +412,21 @@ export class UsuariosService {
   }
 
   /**
-   * Un usuario actualiza su estado (activo/inactivo).
-   * @param user - Las credenciales del usuario que realiza la acción.
-   * @param id - El ID del usuario a actualizar.
-   * @param ip - La dirección IP del cliente.
+   * Busca un usuario por su ID y verifica si está activo.
+   * @param id - El ID del usuario a buscar
    */
-  async patchStatus(user: AccessTokenClaims, id: string, ip?: string) {
+  async isUserActive(id: string) {
     try {
-      this.logger.info('Actualizando estado de usuario');
+      this.logger.info('Buscando usuario por ID y verificando si está activo');
       const existing = await this.usuarioModel.findById(id);
 
       if (!existing) {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      await this.usuarioModel.findByIdAndUpdate(
-        id,
-        {
-          status: !existing.status,
-          updatedBy: user.sub,
-        },
-        { new: true },
-      );
-
-      await this.auditService.auditar({
-        usuario: new Types.ObjectId(user.sub),
-        accion: `Usuario ${user.sub} actualizó el estado de usuario ${id.toString()}`,
-        tipo: 'UPDATE',
-        ipOrigen: ip,
-      });
-
       return ApiResponse.success(
-        { status: !existing.status },
-        'Estado de usuario actualizado correctamente',
+        { status: existing.status },
+        'Estado de usuario recuperado correctamente',
       );
     } catch (error) {
       this.logger.error(

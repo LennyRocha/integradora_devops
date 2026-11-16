@@ -1,4 +1,4 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory, Virtual } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import Rol from './rol';
 import { type MongoImage } from 'src/utils/mongo.image';
@@ -44,6 +44,13 @@ export class Usuario {
 
   @Prop({ type: Types.ObjectId, ref: 'Usuario', name: 'updated_by' })
   updatedBy?: Types.ObjectId;
+
+  @Virtual({
+    get: function (this: Usuario) {
+      return `${this.nombre} ${this.apellidoP} ${this.apellidoM ?? ''}`.trim();
+    },
+  })
+  nombreCompleto?: string;
 }
 
 export const UsuarioSchema = SchemaFactory.createForClass(Usuario);

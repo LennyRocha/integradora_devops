@@ -21,11 +21,13 @@ import { PASSWORD_HASHER } from 'src/auth/interfaces/token-ports';
   ],
   controllers: [UsuariosController],
   providers: [
+    ArgonPasswordHasher,
     UsuariosService,
     {
       provide: PASSWORD_HASHER,
-      useClass: ArgonPasswordHasher,
+      useExisting: ArgonPasswordHasher,
     },
   ],
+  exports: [UsuariosService],
 })
 export class UsuariosModule {}

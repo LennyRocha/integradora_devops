@@ -4,11 +4,18 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { AppController } from './app.controller';
 import { HttpExceptionFilter } from './config/interceptors/http-exception.filter';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { MultimediaModule } from './multimedia/multimedia.module';
 import { BitacoraModule } from './bitacora/bitacora.module';
+import { ServiciosModule } from './servicios/servicios.module';
+import { RefaccionesModule } from './refacciones/refacciones.module';
+import { VehiculosModule } from './vehiculos/vehiculos.module';
+import { ClientesModule } from './clientes/clientes.module';
+import { RolGuard } from './auth/guards/rol.guard';
+import { JwtGuard } from './auth/guards/jwt.guard';
+import { ArgonPasswordHasher } from './auth/infra/crypto/argon-password.hasher';
 
 @Module({
   imports: [
@@ -37,13 +44,20 @@ import { BitacoraModule } from './bitacora/bitacora.module';
     UsuariosModule,
     MultimediaModule,
     BitacoraModule,
+    ServiciosModule,
+    RefaccionesModule,
+    VehiculosModule,
+    ClientesModule,
   ],
   controllers: [AppController],
   providers: [
+    ArgonPasswordHasher,
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+    { provide: APP_GUARD, useClass: JwtGuard },
+    { provide: APP_GUARD, useClass: RolGuard },
   ],
 })
 export class AppModule {}

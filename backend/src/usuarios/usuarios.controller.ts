@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -24,6 +25,7 @@ import { UpdatePasswordDto } from 'src/auth/dto/auth.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { File as MulterFile } from 'multer';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
 
 @ApiTags('Gestión de usuarios')
 @Controller('usuarios')
@@ -38,12 +40,12 @@ export class UsuariosController {
     return this.service.findAll();
   }
 
-  @HasRol(['administrador', 'mecanico', 'recepcionista'])
+  @HasRol(['todos'])
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Consultar el perfil de un usuario',
   })
-  @Get('me')
+  @Get('profile')
   findProfile(@CurrentUser() user: AccessTokenClaims) {
     return this.service.findProfile(user);
   }
@@ -52,7 +54,7 @@ export class UsuariosController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultarun usuario para administración' })
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseObjectIdPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -68,22 +70,35 @@ export class UsuariosController {
     @Ip() ip: string,
     @UploadedFile() file?: MulterFile,
   ) {
-    return this.service.insertOne(user, payload, file, ip);
+    return this.service.insert(payload, user, ip, file);
   }
 
-  @HasRol(['administrador', 'mecanico', 'recepcionista'])
+  @HasRol(['todos'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Actualizar el perfil de un usuario' })
   @ApiConsumes('multipart/form-data')
-  @Patch('me')
+  @Put('profile')
   @UseInterceptors(FileInterceptor('file'))
-  patchProfile(
+  putProfile(
     @CurrentUser() user: AccessTokenClaims,
     @Body() payload: UpdateUserDto,
     @Ip() ip: string,
     @UploadedFile() file?: MulterFile,
   ) {
-    return this.service.patchProfile(user, payload, file, ip);
+    return this.service.updateProfile(user, payload, file, ip);
+  }
+
+  @HasRol(['administrador'])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualizar un usuario desde administración' })
+  @Put(':id')
+  put(
+    @CurrentUser() user: AccessTokenClaims,
+    @Param('id', ParseObjectIdPipe) id: string,
+    @Body() payload: UpdateUserDto,
+    @Ip() ip: string,
+  ) {
+    return this.service.update(id, payload, user, ip);
   }
 
   @HasRol(['administrador'])
@@ -97,7 +112,7 @@ export class UsuariosController {
     @Body() payload: UpdatePasswordDto,
     @Ip() ip: string,
   ) {
-    return this.service.patchPassword(user, payload, ip);
+    return this.service.updatePassword(user, payload, ip);
   }
 
   @HasRol(['administrador'])
@@ -106,24 +121,11 @@ export class UsuariosController {
     summary: 'Cambiar estado de un usuario desde administración',
   })
   @Patch('status/:id')
-  patchStatus(
+  changeStatus(
     @CurrentUser() user: AccessTokenClaims,
-    @Param('id') id: string,
+    @Param('id', ParseObjectIdPipe) id: string,
     @Ip() ip: string,
   ) {
-    return this.service.patchStatus(user, id, ip);
-  }
-
-  @HasRol(['administrador'])
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Actualizar un usuario desde administración' })
-  @Patch(':id')
-  patchOne(
-    @CurrentUser() user: AccessTokenClaims,
-    @Param('id') id: string,
-    @Body() payload: UpdateUserDto,
-    @Ip() ip: string,
-  ) {
-    return this.service.patchOne(user, id, payload, ip);
+    return this.service.toggleStatus(id, user, ip);
   }
 }
