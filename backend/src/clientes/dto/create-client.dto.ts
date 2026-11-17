@@ -9,6 +9,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreateClientVehicleDto } from './create-client-vehicle.dto';
+import { MinArraySize } from 'src/config/decorators/minArraySize.decorator';
+import { MaxArraySize } from 'src/config/decorators/maxArraySize.decorator';
+import { Type } from 'class-transformer';
 
 export class CreateClientDto {
   @ApiProperty({ example: 'Juan' })
@@ -36,21 +39,30 @@ export class CreateClientDto {
   })
   apellidoM?: string;
 
-  @ApiPropertyOptional({ example: '5551234567' })
+  @ApiProperty({ example: '5551234567' })
+  @IsNotEmpty({
+    message: 'El número de teléfono es obligatorio',
+  })
+  @MaxLength(10, {
+    message: 'El número de teléfono no puede tener más de 10 caracteres',
+  })
+  @MinLength(10, {
+    message: 'El número de teléfono no puede tener menos de 10 caracteres',
+  })
   @IsPhoneNumber('MX', {
     message: 'El número de teléfono no es válido',
   })
-  @IsOptional()
-  telefono?: string;
+  telefono!: string;
 
   @ApiPropertyOptional({ type: [CreateClientVehicleDto] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @MinLength(1, {
+  @Type(() => CreateClientVehicleDto)
+  @MinArraySize(1, {
     message: 'Debe proporcionar al menos un vehículo',
   })
-  @MaxLength(10, {
+  @MaxArraySize(10, {
     message: 'No puede proporcionar más de 10 vehículos',
   })
   vehiculos?: CreateClientVehicleDto[];

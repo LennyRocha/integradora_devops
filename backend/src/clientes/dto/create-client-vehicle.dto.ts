@@ -31,15 +31,6 @@ export class CreateClientVehicleDto {
 
   @ApiProperty({ example: '5f9b3c1d2e4f5a6b7c8d9e0f' })
   @IsNotEmpty({
-    message: 'El cliente es obligatorio',
-  })
-  @IsMongoId({
-    message: 'El cliente debe ser un ObjectId válido',
-  })
-  cliente!: string;
-
-  @ApiProperty({ example: '5f9b3c1d2e4f5a6b7c8d9e0f' })
-  @IsNotEmpty({
     message: 'El vehículo es obligatorio',
   })
   @IsMongoId({

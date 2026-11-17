@@ -16,8 +16,8 @@ import { Public } from 'src/config/decorators/public.decorator';
 import { CreateServiceDto } from './dto/create-service.dto';
 import type { AccessTokenClaims } from 'src/auth/interfaces/access-token-claims';
 import { CurrentUser } from 'src/config/decorators/current-user.decorator';
-import { UpdateUserDto } from 'src/usuarios/dto/update-user.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { UpdateServiceDto } from './dto/update-service.dto';
 
 @Controller('servicios')
 export class ServiciosController {
@@ -67,7 +67,7 @@ export class ServiciosController {
   putOne(
     @Param('id', ParseObjectIdPipe) id: string,
     @CurrentUser() user: AccessTokenClaims,
-    @Body() payload: UpdateUserDto,
+    @Body() payload: UpdateServiceDto,
     @Ip() ip: string,
   ) {
     return this.service.update(id, payload, user, ip);

@@ -2,19 +2,24 @@
 import { Injectable } from '@nestjs/common';
 import { SseService } from 'src/sse/sse.service';
 import { DashboardEvent } from './interfaces/dashboard-event';
-import { ClientesService } from 'src/clientes/clientes.service';
-import { UsuariosService } from 'src/usuarios/usuarios.service';
 import { ApiResponse } from 'src/config/api.response';
 import { PinoLogger, InjectPinoLogger } from 'nestjs-pino';
 import { handleError } from 'src/config/utils/handle-error';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Cliente } from 'src/clientes/entity/cliente.schema';
+import { Usuario } from 'src/usuarios/entity/usuario.schema';
+
 @Injectable()
 export class DashboardService {
   constructor(
     @InjectPinoLogger(DashboardService.name)
     private readonly logger: PinoLogger,
+    @InjectModel(Cliente.name)
+    private readonly clienteModel: Model<Cliente>,
+    @InjectModel(Cliente.name)
+    private readonly usuarioModel: Model<Usuario>,
     private readonly sseService: SseService,
-    private readonly clientesService: ClientesService,
-    private readonly usuariosService: UsuariosService,
   ) {}
 
   /**
@@ -25,13 +30,13 @@ export class DashboardService {
     try {
       this.logger.info('Obteniendo dashboard');
       const dashboard = await Promise.all([
-        this.clientesService.countActive(),
-        this.usuariosService.countActive(),
+        this.clienteModel.countDocuments({ status: true }),
+        this.usuarioModel.countDocuments({ status: true }),
       ]).then(([clientes, usuarios]) => {
         return {
-          clientesActivos: clientes.count,
+          clientesActivos: clientes,
           ordenesActivas: 0,
-          personalActivo: usuarios.count,
+          personalActivo: usuarios,
           ingresosBrutos: 0,
         };
       });
