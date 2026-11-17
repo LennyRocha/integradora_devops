@@ -25,5 +25,6 @@ import { Vehiculo, VehiculoSchema } from './entity/vehiculo.schema';
   ],
   providers: [VehiculosService],
   controllers: [VehiculosController],
+  exports: [VehiculosService],
 })
 export class VehiculosModule {}

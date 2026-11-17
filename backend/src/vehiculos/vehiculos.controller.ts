@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Ip,
   Param,
   Patch,
@@ -47,6 +48,7 @@ export class VehiculosController {
     return this.service.findOne(id);
   }
 
+  @HttpCode(201)
   @HasRol(['administrador', 'recepcionista'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar un vehículo' })
@@ -63,7 +65,7 @@ export class VehiculosController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Actualizar un vehículo' })
   @Put(':id')
-  putProfile(
+  putOne(
     @Param('id', ParseObjectIdPipe) id: string,
     @CurrentUser() user: AccessTokenClaims,
     @Body() payload: UpdateVehicleDto,

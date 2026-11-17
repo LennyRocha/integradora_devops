@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -58,6 +59,7 @@ export class UsuariosController {
     return this.service.findOne(id);
   }
 
+  @HttpCode(201)
   @HasRol(['administrador'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar un usuario desde administración' })

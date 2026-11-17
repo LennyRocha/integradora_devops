@@ -51,6 +51,8 @@ async function bootstrap() {
 
   await app.listen(port, () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
+    console.log(`Scalar docs en http://localhost:${port}/docs`);
+    console.log(`OpenAPI JSON en http://localhost:${port}/api-json`);
   });
 }
 

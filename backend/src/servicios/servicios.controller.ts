@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Ip,
   Param,
   Patch,
@@ -46,6 +47,7 @@ export class ServiciosController {
     return this.service.findOne(id);
   }
 
+  @HttpCode(201)
   @HasRol(['administrador'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar un servicio desde administración' })
@@ -62,7 +64,7 @@ export class ServiciosController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Actualizar un servicio' })
   @Put(':id')
-  putProfile(
+  putOne(
     @Param('id', ParseObjectIdPipe) id: string,
     @CurrentUser() user: AccessTokenClaims,
     @Body() payload: UpdateUserDto,

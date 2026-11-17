@@ -151,7 +151,7 @@ export class ServiciosService implements ICrudRepository {
           ...payload,
           updatedBy: user.sub,
         },
-        { new: true },
+        { new: true, runValidators: true },
       );
 
       if (!data) {

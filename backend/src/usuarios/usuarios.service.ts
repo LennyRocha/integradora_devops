@@ -175,7 +175,7 @@ export class UsuariosService implements ICrudRepository {
           ...payload,
           updatedBy: user.sub,
         },
-        { new: true },
+        { new: true, runValidators: true },
       );
 
       if (!data) {
@@ -329,7 +329,7 @@ export class UsuariosService implements ICrudRepository {
             updatedBy: user.sub,
             ...(uploaded && { perfilFoto: uploaded }),
           },
-          { new: true },
+          { new: true, runValidators: true },
         );
         if (!data) {
           if (uploaded) {
@@ -387,7 +387,7 @@ export class UsuariosService implements ICrudRepository {
           contra: hashedPassword,
           updatedBy: user.sub,
         },
-        { new: true },
+        { new: true, runValidators: true },
       );
 
       if (!data) {

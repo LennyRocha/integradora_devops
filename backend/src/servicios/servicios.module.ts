@@ -14,5 +14,6 @@ import { BitacoraModule } from 'src/bitacora/bitacora.module';
   ],
   controllers: [ServiciosController],
   providers: [ServiciosService],
+  exports: [ServiciosService],
 })
 export class ServiciosModule {}

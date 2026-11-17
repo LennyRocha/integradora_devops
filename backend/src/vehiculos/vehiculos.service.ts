@@ -36,7 +36,7 @@ export class VehiculosService implements ICrudRepository {
     try {
       this.logger.info('Obteniendo todos los vehículos');
       const data = await this.vehiculoModel
-        .find(query ? { modelo: query } : {})
+        .find(query ? { modelo: query, status: true } : { status: true })
         .populate('tipo', 'tipo')
         .exec();
       return ApiResponse.success(data, 'vehículos obtenidos correctamente');
@@ -59,7 +59,7 @@ export class VehiculosService implements ICrudRepository {
 
       const [data, total] = await Promise.all([
         this.vehiculoModel
-          .find()
+          .find(dto.activeOnly ? { status: true } : {})
           .populate('tipo', 'tipo')
           .sort({ createdAt: -1, _id: -1 })
           .skip(skip)
@@ -187,7 +187,7 @@ export class VehiculosService implements ICrudRepository {
           ...payload,
           updatedBy: user.sub,
         },
-        { new: true },
+        { new: true, runValidators: true },
       );
 
       if (!data) {
@@ -349,6 +349,66 @@ export class VehiculosService implements ICrudRepository {
       this.logger.error(
         { err: error },
         'Error al actualizar el estado del tipo de vehículo',
+      );
+      handleError(error);
+    }
+  }
+  //Para uso interno
+  /**
+   * Verifica si un tipo de vehículo existe en la base de datos.
+   * @param id - El ID del tipo de vehículo a verificar.
+   * @returns Un booleano indicando si el tipo de vehículo existe o no.
+   */
+  async existsTipoVehiculo(id: string) {
+    try {
+      this.logger.info('Verificando existencia de tipo de vehículo');
+      const exists = await this.tipoVehiculoModel.exists({ _id: id });
+      return !!exists;
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al verificar existencia del tipo de vehículo',
+      );
+      handleError(error);
+    }
+  }
+
+  /**
+   * Verifica si un vehículo existe en la base de datos.
+   * @param id - El ID del vehículo a verificar.
+   * @returns Un booleano indicando si el vehículo existe o no.
+   */
+  async existsVehiculo(id: string) {
+    try {
+      this.logger.info('Verificando existencia de vehículo');
+      const exists = await this.vehiculoModel.exists({ _id: id });
+      return !!exists;
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al verificar existencia del vehículo',
+      );
+      handleError(error);
+    }
+  }
+
+  /**
+   * Verifica si un vehículo está activo.
+   * @param id - El ID del vehículo a verificar.
+   * @returns Un booleano indicando si el vehículo está activo o no.
+   */
+  async isVehicleActive(id: string) {
+    try {
+      this.logger.info('Verificando si el vehículo está activo');
+      const vehicle = await this.vehiculoModel.findById(id);
+      if (!vehicle) {
+        throw new NotFoundException('Vehículo no encontrado');
+      }
+      return vehicle.status;
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al verificar si el vehículo está activo',
       );
       handleError(error);
     }
