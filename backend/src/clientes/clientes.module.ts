@@ -9,6 +9,7 @@ import {
   ClienteVehiculoSchema,
 } from './entity/cliente-vehiculo.schema';
 import { VehiculosModule } from 'src/vehiculos/vehiculos.module';
+import { DashboardModule } from 'src/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { VehiculosModule } from 'src/vehiculos/vehiculos.module';
     ]),
     BitacoraModule,
     VehiculosModule,
+    DashboardModule,
   ],
   providers: [ClientesService],
   controllers: [ClientesController],

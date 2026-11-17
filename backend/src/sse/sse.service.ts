@@ -2,6 +2,7 @@ import { Injectable, MessageEvent } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SseChannels } from './tags/sse.channels';
 import { fromEvent, map, Observable } from 'rxjs';
+import { SseEvents } from './tags/sse.events';
 
 @Injectable()
 export class SseService {
@@ -13,7 +14,7 @@ export class SseService {
    * @param data - Los datos que se enviarán en el evento.
    * @param tag - Una etiqueta opcional para identificar el evento.
    */
-  emmit(channel: SseChannels, data: object, event: string): void {
+  emmit(channel: SseChannels, data: object, event: SseEvents): void {
     this.eventEmitter.emit(channel, { event, data });
   }
 

@@ -17,6 +17,7 @@ import { RolGuard } from './auth/guards/rol.guard';
 import { JwtGuard } from './auth/guards/jwt.guard';
 import { ArgonPasswordHasher } from './auth/infra/crypto/argon-password.hasher';
 import { SseModule } from './sse/sse.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SseModule } from './sse/sse.module';
     VehiculosModule,
     ClientesModule,
     SseModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

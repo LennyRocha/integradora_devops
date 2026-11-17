@@ -19,6 +19,8 @@ import {
   type PasswordHasherPort,
 } from 'src/auth/interfaces/token-ports';
 import ICrudRepository from 'src/utils/crud-repository';
+import { DashboardEvent } from 'src/dashboard/interfaces/dashboard-event';
+import { DashboardService } from 'src/dashboard/dashboard.service';
 
 @Injectable()
 export class UsuariosService implements ICrudRepository {
@@ -30,6 +32,7 @@ export class UsuariosService implements ICrudRepository {
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasherPort,
     private readonly fileService: MultimediaService,
     private readonly auditService: BitacoraService,
+    private readonly dashboardService: DashboardService,
   ) {}
 
   /**
@@ -134,6 +137,9 @@ export class UsuariosService implements ICrudRepository {
         tipo: 'INSERT',
         ipOrigen: ip,
       });
+
+      const event = await this.countActive();
+      this.dashboardService.updateDashboardKpi(event);
 
       this.logger.info('Usuario creado correctamente');
 
@@ -431,6 +437,25 @@ export class UsuariosService implements ICrudRepository {
         'Error al actualizar el estado del usuario',
       );
       handleError(error);
+    }
+  }
+
+  /**
+   * Cuenta el número de usuarios de personal activos y emite un evento al dashboard.
+   * @returns Un objeto DashboardEvent con el resultado de la operación.
+   */
+  async countActive(): Promise<DashboardEvent> {
+    try {
+      const count = await this.usuarioModel.countDocuments({ status: true });
+      return { kpi: 'personal', success: true, count };
+    } catch (error) {
+      this.logger.error({ err: error }, 'Error al contar usuarios activos');
+      return {
+        kpi: 'personal',
+        success: false,
+        count: 0,
+        message: 'Error al contar usuarios activos',
+      };
     }
   }
 }

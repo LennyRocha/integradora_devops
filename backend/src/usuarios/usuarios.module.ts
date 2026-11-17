@@ -7,6 +7,7 @@ import { MultimediaModule } from 'src/multimedia/multimedia.module';
 import { BitacoraModule } from 'src/bitacora/bitacora.module';
 import { ArgonPasswordHasher } from 'src/auth/infra/crypto/argon-password.hasher';
 import { PASSWORD_HASHER } from 'src/auth/interfaces/token-ports';
+import { DashboardModule } from 'src/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PASSWORD_HASHER } from 'src/auth/interfaces/token-ports';
     ]),
     MultimediaModule,
     BitacoraModule,
+    DashboardModule,
   ],
   controllers: [UsuariosController],
   providers: [

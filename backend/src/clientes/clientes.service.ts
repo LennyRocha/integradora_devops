@@ -14,6 +14,8 @@ import { UpdateClientDto } from './dto/update-client.dto';
 import { PaginationDto } from 'src/utils/pagination.dto';
 import { UpdateClientVehicleDto } from './dto/update-client-vehicle.dto';
 import { VehiculosService } from 'src/vehiculos/vehiculos.service';
+import { DashboardEvent } from 'src/dashboard/interfaces/dashboard-event';
+import { DashboardService } from 'src/dashboard/dashboard.service';
 
 @Injectable()
 export class ClientesService {
@@ -24,6 +26,7 @@ export class ClientesService {
     private readonly logger: PinoLogger,
     private readonly auditService: BitacoraService,
     private readonly vehiculosService: VehiculosService,
+    private readonly dashboardService: DashboardService,
   ) {}
 
   /**
@@ -148,6 +151,9 @@ export class ClientesService {
         tipo: 'INSERT',
         ipOrigen: ip,
       });
+
+      const event = await this.countActive();
+      this.dashboardService.updateDashboardKpi(event);
 
       this.logger.info('cliente creado correctamente');
 
@@ -351,6 +357,25 @@ export class ClientesService {
         'Error al verificar el vehículo del cliente',
       );
       handleError(error);
+    }
+  }
+
+  /**
+   * Cuenta el número de clientes activos y emite un evento al dashboard.
+   * @returns Un objeto DashboardEvent con el resultado de la operación.
+   */
+  async countActive(): Promise<DashboardEvent> {
+    try {
+      const count = await this.clienteModel.countDocuments({ status: true });
+      return { kpi: 'clientes', success: true, count };
+    } catch (error) {
+      this.logger.error({ err: error }, 'Error al contar clientes activos');
+      return {
+        kpi: 'clientes',
+        success: false,
+        count: 0,
+        message: 'Error al contar clientes activos',
+      };
     }
   }
 }
