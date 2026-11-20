@@ -21,4 +21,12 @@ export class BitacoraController {
   ) {
     return this.service.findAll(user, pagination);
   }
+
+  @HasRol(['administrador'])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Consultar últimos 10 registros de la bitácora' })
+  @Get('/dashboard')
+  getRecentTen() {
+    return this.service.getRecentTen();
+  }
 }

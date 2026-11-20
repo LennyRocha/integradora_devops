@@ -3,6 +3,7 @@ import { BitacoraService } from './bitacora.service';
 import { BitacoraController } from './bitacora.controller';
 import { Bitacora, BitacoraSchema } from './entity/bitacora.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { SseModule } from 'src/sse/sse.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         schema: BitacoraSchema,
       },
     ]),
+    SseModule,
   ],
   exports: [BitacoraService],
   providers: [BitacoraService],

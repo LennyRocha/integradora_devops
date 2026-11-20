@@ -10,6 +10,7 @@ import { AccessTokenClaims } from 'src/auth/interfaces/access-token-claims';
 import { BitacoraException } from 'src/config/exceptions/bitacora-exception';
 import { handleError } from 'src/config/utils/handle-error';
 import { PaginationDto } from 'src/utils/pagination.dto';
+import { SseService } from 'src/sse/sse.service';
 
 @Injectable()
 export class BitacoraService {
@@ -18,6 +19,7 @@ export class BitacoraService {
     private readonly bitacoraModel: Model<Bitacora>,
     @InjectPinoLogger(BitacoraService.name)
     private readonly logger: PinoLogger,
+    private readonly sseService: SseService,
   ) {}
 
   private async registrar(payload: BitacoraPayload) {
@@ -53,6 +55,11 @@ export class BitacoraService {
   async auditar(payload: BitacoraPayload) {
     try {
       await this.registrar(payload);
+      this.sseService.emmit(
+        'dashboard',
+        { updated: true },
+        'dashboard.movimientos',
+      );
     } catch (error) {
       if (error instanceof BitacoraException) {
         this.logger.error(
@@ -103,6 +110,30 @@ export class BitacoraService {
       );
     } catch (error) {
       this.logger.error({ err: error }, 'Error al obtener la bitácora');
+
+      handleError(error);
+    }
+  }
+
+  async getRecentTen() {
+    try {
+      const data = await this.bitacoraModel
+        .find()
+        .sort({ createdAt: -1, _id: -1 })
+        .limit(10)
+        .lean();
+
+      return ApiResponse.success(
+        {
+          items: data,
+        },
+        '10 registros  más recientes de la bitácora obtenidos correctamente',
+      );
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al obtener los 10 registros más recientes de la bitácora',
+      );
 
       handleError(error);
     }
