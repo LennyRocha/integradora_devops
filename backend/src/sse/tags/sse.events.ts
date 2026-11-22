@@ -4,6 +4,7 @@ export type SseEvents =
   | 'orden.modificada'
   | 'orden.finalizada'
   | 'orden.diagnostico'
+  | 'orden.mecanicos'
   | 'seguimiento.actualizado'
   | 'notificacion.nueva'
   | 'notificacion.leida'

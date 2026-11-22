@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -37,8 +38,18 @@ export class UsuariosController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultar usuarios para administración' })
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@Query() query?: string) {
+    return this.service.findAll(query);
+  }
+
+  @HasRol(['administrador'])
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Consultar mecánicos disponibles  para administración',
+  })
+  @Get()
+  findAllMecanicos(@Query() query?: string) {
+    return this.service.findAllMecanicos(query);
   }
 
   @HasRol(['todos'])

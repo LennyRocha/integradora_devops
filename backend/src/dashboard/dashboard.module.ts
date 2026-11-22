@@ -5,6 +5,7 @@ import { DashboardController } from './dashboard.controller';
 import { Usuario, UsuarioSchema } from 'src/usuarios/entity/usuario.schema';
 import { Cliente, ClienteSchema } from 'src/clientes/entity/cliente.schema';
 import { MongooseModule } from '@nestjs/mongoose';
+import { Orden, OrdenSchema } from 'src/ordenes/entity/orden.schema';
 
 @Module({
   imports: [
@@ -16,6 +17,10 @@ import { MongooseModule } from '@nestjs/mongoose';
       {
         name: Cliente.name,
         schema: ClienteSchema,
+      },
+      {
+        name: Orden.name,
+        schema: OrdenSchema,
       },
     ]),
     SseModule,

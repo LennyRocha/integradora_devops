@@ -18,6 +18,8 @@ import { JwtGuard } from './auth/guards/jwt.guard';
 import { ArgonPasswordHasher } from './auth/infra/crypto/argon-password.hasher';
 import { SseModule } from './sse/sse.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { OrdenesModule } from './ordenes/ordenes.module';
+import { DiagnosticosModule } from './diagnosticos/diagnosticos.module';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ClientesModule,
     SseModule,
     DashboardModule,
+    OrdenesModule,
+    DiagnosticosModule,
   ],
   controllers: [AppController],
   providers: [

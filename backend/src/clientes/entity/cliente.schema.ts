@@ -7,7 +7,11 @@ import {
 
 export type ClienteDocument = HydratedDocument<Cliente>;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+})
 export class Cliente {
   @Prop({ required: true, maxLength: 75 })
   nombre!: string;

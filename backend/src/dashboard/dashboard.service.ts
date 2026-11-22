@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { SseService } from 'src/sse/sse.service';
@@ -9,6 +10,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Cliente } from 'src/clientes/entity/cliente.schema';
 import { Usuario } from 'src/usuarios/entity/usuario.schema';
+import { Orden } from 'src/ordenes/entity/orden.schema';
+import OrdenEstado from 'src/ordenes/entity/orden-estado';
 
 @Injectable()
 export class DashboardService {
@@ -17,7 +20,9 @@ export class DashboardService {
     private readonly logger: PinoLogger,
     @InjectModel(Cliente.name)
     private readonly clienteModel: Model<Cliente>,
-    @InjectModel(Cliente.name)
+    @InjectModel(Orden.name)
+    private readonly ordenModel: Model<Orden>,
+    @InjectModel(Usuario.name)
     private readonly usuarioModel: Model<Usuario>,
     private readonly sseService: SseService,
   ) {}
@@ -29,15 +34,44 @@ export class DashboardService {
   async getDashboard() {
     try {
       this.logger.info('Obteniendo dashboard');
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const endOfMonth = new Date(startOfMonth);
+      endOfMonth.setMonth(startOfMonth.getMonth() + 1);
       const dashboard = await Promise.all([
         this.clienteModel.countDocuments({ status: true }),
+        this.ordenModel.countDocuments({
+          estado: {
+            $in: [
+              OrdenEstado.DIAGNOSTICO,
+              OrdenEstado.PENDIENTE,
+              OrdenEstado.REFACCIONES,
+              OrdenEstado.LISTO,
+            ],
+          },
+        }),
         this.usuarioModel.countDocuments({ status: true }),
-      ]).then(([clientes, usuarios]) => {
+        this.ordenModel.aggregate([
+          {
+            $match: {
+              createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+              estado: OrdenEstado.ENTREGADO,
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: '$subtotal' },
+            },
+          },
+        ]),
+      ]).then(([clientes, ordenes, usuarios, ingresos]) => {
         return {
           clientesActivos: clientes,
-          ordenesActivas: 0,
+          ordenesActivas: ordenes,
           personalActivo: usuarios,
-          ingresosBrutos: 0,
+          ingresosBrutos: ingresos.length > 0 ? ingresos[0]?.total : 0,
         };
       });
       this.logger.info({ dashboard }, 'Dashboard obtenido correctamente');

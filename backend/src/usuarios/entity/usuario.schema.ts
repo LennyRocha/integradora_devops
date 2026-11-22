@@ -6,7 +6,11 @@ import { MongoImageSchema } from 'src/utils/mongo.image.schema';
 
 export type UsuarioDocument = HydratedDocument<Usuario>;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+})
 export class Usuario {
   @Prop({ required: true, maxLength: 75 })
   nombre!: string;

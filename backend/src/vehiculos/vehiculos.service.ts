@@ -36,7 +36,11 @@ export class VehiculosService implements ICrudRepository {
     try {
       this.logger.info('Obteniendo todos los vehículos');
       const data = await this.vehiculoModel
-        .find(query ? { modelo: query, status: true } : { status: true })
+        .find(
+          query
+            ? { modelo: { $regex: query, $options: 'i' }, status: true }
+            : { status: true },
+        )
         .populate('tipo', 'tipo')
         .exec();
       return ApiResponse.success(data, 'vehículos obtenidos correctamente');
@@ -99,6 +103,7 @@ export class VehiculosService implements ICrudRepository {
       this.logger.info('Obteniendo un vehiculo');
       const data = await this.vehiculoModel.findById(id);
       if (!data) {
+        this.logger.warn({ id }, 'Vehiculo no encontrado');
         throw new NotFoundException('vehiculo no encontrado');
       }
       return ApiResponse.success(data, 'vehiculo obtenido correctamente');

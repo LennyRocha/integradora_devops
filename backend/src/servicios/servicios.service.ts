@@ -73,6 +73,7 @@ export class ServiciosService implements ICrudRepository {
       this.logger.info('Obteniendo un servicio');
       const data = await this.servicioModel.findById(id);
       if (!data) {
+        this.logger.warn({ id }, 'Servicio no encontrado');
         throw new NotFoundException('Servicio no encontrado');
       }
       return ApiResponse.success(data, 'Servicio obtenido correctamente');

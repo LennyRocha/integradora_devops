@@ -21,6 +21,7 @@ import {
 import ICrudRepository from 'src/utils/crud-repository';
 import { DashboardEvent } from 'src/dashboard/interfaces/dashboard-event';
 import { DashboardService } from 'src/dashboard/dashboard.service';
+import Rol from './entity/rol';
 
 @Injectable()
 export class UsuariosService implements ICrudRepository {
@@ -37,11 +38,37 @@ export class UsuariosService implements ICrudRepository {
 
   /**
    * Obtiene todos los usuarios.
+   * @param query - La consulta para filtrar los usuarios.
    */
-  async findAll() {
+  async findAll(query?: string) {
     try {
       this.logger.info('Obteniendo todos los usuarios');
-      const data = await this.usuarioModel.find();
+      const data = await this.usuarioModel.find(
+        query ? { nombre: { $regex: query, $options: 'i' } } : {},
+      );
+      return ApiResponse.success(data, 'Usuarios obtenidos correctamente');
+    } catch (error) {
+      this.logger.error({ err: error }, 'Error al obtener los usuarios');
+      handleError(error);
+    }
+  }
+
+  /**
+   * Obtiene todos los mecánicos.
+   * @param query - La consulta para filtrar los usuarios.
+   */
+  async findAllMecanicos(query?: string) {
+    try {
+      this.logger.info('Obteniendo todos los usuarios');
+      const data = await this.usuarioModel.find(
+        query
+          ? {
+              nombre: { $regex: query, $options: 'i' },
+              rol: { $in: [Rol.MECANICO] },
+              status: true,
+            }
+          : { rol: { $in: [Rol.MECANICO] }, status: true },
+      );
       return ApiResponse.success(data, 'Usuarios obtenidos correctamente');
     } catch (error) {
       this.logger.error({ err: error }, 'Error al obtener los usuarios');
@@ -58,6 +85,7 @@ export class UsuariosService implements ICrudRepository {
       this.logger.info('Obteniendo un usuario');
       const data = await this.usuarioModel.findById(id);
       if (!data) {
+        this.logger.warn({ id }, 'Usuario no encontrado');
         throw new NotFoundException('Usuario no encontrado');
       }
       return ApiResponse.success(data, 'Usuario obtenido correctamente');
@@ -456,6 +484,19 @@ export class UsuariosService implements ICrudRepository {
         count: 0,
         message: 'Error al contar usuarios activos',
       };
+    }
+  }
+
+  async soloHayAdministradores() {
+    try {
+      const count = await this.usuarioModel.countDocuments({
+        status: true,
+        rol: { $ne: Rol.ADMIN },
+      });
+      return count === 0;
+    } catch (error) {
+      this.logger.error({ err: error }, 'Error al contar usuarios activos');
+      return false;
     }
   }
 }

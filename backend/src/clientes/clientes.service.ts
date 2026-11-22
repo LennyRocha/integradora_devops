@@ -37,7 +37,11 @@ export class ClientesService {
     try {
       this.logger.info('Obteniendo todos los clientes');
       const data = await this.clienteModel
-        .find(query ? { nombre: query, status: true } : { status: true })
+        .find(
+          query
+            ? { nombre: { $regex: query, $options: 'i' }, status: true }
+            : { status: true },
+        )
         .exec();
       return ApiResponse.success(data, 'clientes obtenidos correctamente');
     } catch (error) {
@@ -98,6 +102,7 @@ export class ClientesService {
       this.logger.info('Obteniendo un cliente por su ID');
       const data = await this.clienteModel.findById(id);
       if (!data) {
+        this.logger.warn({ id }, 'Cliente no encontrado');
         throw new NotFoundException('cliente no encontrado');
       }
       return ApiResponse.success(data, 'cliente obtenido correctamente');

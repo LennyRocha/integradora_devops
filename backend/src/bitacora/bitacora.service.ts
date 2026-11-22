@@ -89,6 +89,7 @@ export class BitacoraService {
           .sort({ createdAt: -1, _id: -1 })
           .skip(skip)
           .limit(limit)
+          .populate('usuario')
           .lean(),
 
         this.bitacoraModel.countDocuments(),
@@ -121,6 +122,7 @@ export class BitacoraService {
         .find()
         .sort({ createdAt: -1, _id: -1 })
         .limit(10)
+        .populate('usuario')
         .lean();
 
       return ApiResponse.success(
