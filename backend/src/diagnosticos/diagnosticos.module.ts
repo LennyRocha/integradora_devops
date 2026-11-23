@@ -8,6 +8,7 @@ import {
   DiagnosticoSchema,
 } from 'src/diagnosticos/entity/diagnostico.schema';
 import { Orden, OrdenSchema } from 'src/ordenes/entity/orden.schema';
+import { SseModule } from 'src/sse/sse.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Orden, OrdenSchema } from 'src/ordenes/entity/orden.schema';
       },
     ]),
     BitacoraModule,
+    SseModule,
   ],
   providers: [DiagnosticosService],
   controllers: [DiagnosticosController],

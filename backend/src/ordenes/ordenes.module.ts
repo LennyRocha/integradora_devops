@@ -14,6 +14,7 @@ import { Servicio, ServicioSchema } from 'src/servicios/entity/servicio.schema';
 import { DashboardModule } from 'src/dashboard/dashboard.module';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
 import { Contador, ContadorSchema } from './entity/contador.schema';
+import { SseModule } from 'src/sse/sse.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { Contador, ContadorSchema } from './entity/contador.schema';
     MultimediaModule,
     DashboardModule,
     UsuariosModule,
+    SseModule,
   ],
   providers: [OrdenesService],
   controllers: [OrdenesController],

@@ -13,6 +13,7 @@ import { handleError } from 'src/config/utils/handle-error';
 import { BussinessException } from 'src/config/exceptions/bussiness-exception';
 import { ServicioPublicResponse } from './interfaces/servicio-public.response';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { PaginationDto } from 'src/utils/pagination.dto';
 
 @Injectable()
 export class ServiciosService implements ICrudRepository {
@@ -32,6 +33,55 @@ export class ServiciosService implements ICrudRepository {
       this.logger.info('Obteniendo todos los servicios');
       const data = await this.servicioModel.find();
       return ApiResponse.success(data, 'Servicios obtenidos correctamente');
+    } catch (error) {
+      this.logger.error({ err: error }, 'Error al obtener los servicios');
+      handleError(error);
+    }
+  }
+
+  /**
+   * Obtiene todos los servicios con paginación.
+   * @param dto - Parámetros de paginación.
+   * @param query - La consulta para filtrar los servicios.
+   */
+  async findAllPaginated(dto: PaginationDto, query?: string) {
+    try {
+      const { page, limit } = dto;
+      const skip = (page - 1) * limit;
+
+      this.logger.info({ page, limit }, 'Consultando servicios con paginación');
+
+      const filter = query ? { nombre: { $regex: query, $options: 'i' } } : {};
+
+      const [data, total] = await Promise.all([
+        this.servicioModel
+          .find({ ...filter, ...(dto.activeOnly ? { status: true } : {}) })
+          .sort({ createdAt: -1, _id: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean()
+          .exec(),
+
+        this.servicioModel.countDocuments({
+          ...filter,
+          ...(dto.activeOnly ? { status: true } : {}),
+        }),
+      ]);
+
+      return ApiResponse.success(
+        {
+          items: data,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+            hasNextPage: page * limit < total,
+            hasPreviousPage: page > 1,
+          },
+        },
+        'Servicios obtenidos correctamente',
+      );
     } catch (error) {
       this.logger.error({ err: error }, 'Error al obtener los servicios');
       handleError(error);
@@ -115,7 +165,7 @@ export class ServiciosService implements ICrudRepository {
 
       this.logger.info('Servicio creado correctamente');
 
-      return ApiResponse.success(data, 'Servicio creado correctamente');
+      return ApiResponse.success(data, 'Servicio creado correctamente', 201);
     } catch (error) {
       this.logger.error({ err: error }, 'Error al crear el servicio');
       handleError(error);

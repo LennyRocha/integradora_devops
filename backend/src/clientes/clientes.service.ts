@@ -51,26 +51,32 @@ export class ClientesService {
   }
 
   /**
-   * Obtiene todos los vehículos con paginación.
+   * Obtiene todos los clientes con paginación.
    * @param dto - Parámetros de paginación.
+   * @param query - La consulta para filtrar los clientes.
    */
-  async findAllPaginated(dto: PaginationDto) {
+  async findAllPaginated(dto: PaginationDto, query?: string) {
     try {
       const { page, limit } = dto;
       const skip = (page - 1) * limit;
 
-      this.logger.info({ page, limit }, 'Consultando vehículos con paginación');
+      this.logger.info({ page, limit }, 'Consultando clientes con paginación');
+
+      const filter = query ? { nombre: { $regex: query, $options: 'i' } } : {};
 
       const [data, total] = await Promise.all([
         this.clienteModel
-          .find(dto.activeOnly ? { status: true } : {})
+          .find({ ...filter, ...(dto.activeOnly ? { status: true } : {}) })
           .sort({ createdAt: -1, _id: -1 })
           .skip(skip)
           .limit(limit)
           .lean()
           .exec(),
 
-        this.clienteModel.countDocuments(),
+        this.clienteModel.countDocuments({
+          ...filter,
+          ...(dto.activeOnly ? { status: true } : {}),
+        }),
       ]);
 
       return ApiResponse.success(
@@ -162,7 +168,7 @@ export class ClientesService {
 
       this.logger.info('cliente creado correctamente');
 
-      return ApiResponse.success(data, 'cliente creado correctamente');
+      return ApiResponse.success(data, 'cliente creado correctamente', 201);
     } catch (error) {
       this.logger.error({ err: error }, 'Error al crear el cliente');
       handleError(error);

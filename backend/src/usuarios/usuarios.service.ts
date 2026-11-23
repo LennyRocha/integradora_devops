@@ -22,6 +22,7 @@ import ICrudRepository from 'src/utils/crud-repository';
 import { DashboardEvent } from 'src/dashboard/interfaces/dashboard-event';
 import { DashboardService } from 'src/dashboard/dashboard.service';
 import Rol from './entity/rol';
+import { PaginationDto } from 'src/utils/pagination.dto';
 
 @Injectable()
 export class UsuariosService implements ICrudRepository {
@@ -70,6 +71,55 @@ export class UsuariosService implements ICrudRepository {
           : { rol: { $in: [Rol.MECANICO] }, status: true },
       );
       return ApiResponse.success(data, 'Usuarios obtenidos correctamente');
+    } catch (error) {
+      this.logger.error({ err: error }, 'Error al obtener los usuarios');
+      handleError(error);
+    }
+  }
+
+  /**
+   * Obtiene todos los usuarios con paginación.
+   * @param dto - Parámetros de paginación.
+   * @param query - La consulta para filtrar los usuarios.
+   */
+  async findAllPaginated(dto: PaginationDto, query?: string) {
+    try {
+      const { page, limit } = dto;
+      const skip = (page - 1) * limit;
+
+      this.logger.info({ page, limit }, 'Consultando servicios con paginación');
+
+      const filter = query ? { nombre: { $regex: query, $options: 'i' } } : {};
+
+      const [data, total] = await Promise.all([
+        this.usuarioModel
+          .find({ ...filter, ...(dto.activeOnly ? { status: true } : {}) })
+          .sort({ createdAt: -1, _id: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean()
+          .exec(),
+
+        this.usuarioModel.countDocuments({
+          ...filter,
+          ...(dto.activeOnly ? { status: true } : {}),
+        }),
+      ]);
+
+      return ApiResponse.success(
+        {
+          items: data,
+          pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+            hasNextPage: page * limit < total,
+            hasPreviousPage: page > 1,
+          },
+        },
+        'Usuarios obtenidos correctamente',
+      );
     } catch (error) {
       this.logger.error({ err: error }, 'Error al obtener los usuarios');
       handleError(error);
@@ -171,7 +221,7 @@ export class UsuariosService implements ICrudRepository {
 
       this.logger.info('Usuario creado correctamente');
 
-      return ApiResponse.success(data, 'Usuario creado correctamente');
+      return ApiResponse.success(data, 'Usuario creado correctamente', 201);
     } catch (error) {
       this.logger.error({ err: error }, 'Error al crear el usuario');
       handleError(error);

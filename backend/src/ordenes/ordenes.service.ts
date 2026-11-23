@@ -79,7 +79,71 @@ export class OrdenesService {
                   ],
                 },
               }
-            : {},
+            : {
+                estado: {
+                  $in: [
+                    OrdenEstado.DIAGNOSTICO,
+                    OrdenEstado.PENDIENTE,
+                    OrdenEstado.REFACCIONES,
+                    OrdenEstado.LISTO,
+                  ],
+                },
+              },
+        )
+        .populate('cliente')
+        .populate('vehiculo')
+        .populate('vehiculo.vehiculo')
+        .populate('vehiculo.vehiculo.tipo')
+        .populate('diagnostico')
+        .populate('mecanicosAsignados')
+        .exec();
+      return ApiResponse.success(data, 'órdenes obtenidas correctamente');
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al obtener las órdenes para el tablero de órdenes',
+      );
+      handleError(error);
+    }
+  }
+
+  /**
+   * Obtiene todas las órdenes asignadas a un mecánico.
+   * @param mecanicoId - El ID del mecánico para el cual obtener las órdenes.
+   * @param query - Parámetro opcional para filtrar por número de ordenF.
+   */
+  async findAllByMecanico(mecanicoId: string, query?: string) {
+    try {
+      this.logger.info(
+        { mecanicoId },
+        'Obteniendo todas las órdenes para el tablero de órdenes',
+      );
+      const data = await this.ordenModel
+        .find(
+          query
+            ? {
+                numOrden: { $regex: query, $options: 'i' },
+                estado: {
+                  $in: [
+                    OrdenEstado.DIAGNOSTICO,
+                    OrdenEstado.PENDIENTE,
+                    OrdenEstado.REFACCIONES,
+                    OrdenEstado.LISTO,
+                  ],
+                },
+                mecanicosAsignados: { $in: [mecanicoId] },
+              }
+            : {
+                estado: {
+                  $in: [
+                    OrdenEstado.DIAGNOSTICO,
+                    OrdenEstado.PENDIENTE,
+                    OrdenEstado.REFACCIONES,
+                    OrdenEstado.LISTO,
+                  ],
+                },
+                mecanicosAsignados: { $in: [mecanicoId] },
+              },
         )
         .populate('cliente')
         .populate('vehiculo')
@@ -150,7 +214,11 @@ export class OrdenesService {
                     $in: [OrdenEstado.CANCELADO, OrdenEstado.ENTREGADO],
                   },
                 }
-              : {},
+              : {
+                  estado: {
+                    $in: [OrdenEstado.CANCELADO, OrdenEstado.ENTREGADO],
+                  },
+                },
           )
           .populate('cliente')
           .populate('vehiculo')
@@ -326,7 +394,11 @@ export class OrdenesService {
       //TODO generar notificaciones para todos
 
       this.logger.info('Órden creada correctamente');
-      return ApiResponse.success(savedOrden, 'Órden insertada correctamente');
+      return ApiResponse.success(
+        savedOrden,
+        'Órden insertada correctamente',
+        201,
+      );
     } catch (error) {
       this.logger.error({ err: error }, 'Error al insertar la órden');
       handleError(error);

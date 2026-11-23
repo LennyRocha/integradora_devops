@@ -53,17 +53,20 @@ export class VehiculosService implements ICrudRepository {
   /**
    * Obtiene todos los vehículos con paginación.
    * @param dto - Parámetros de paginación.
+   * @param query - La consulta para filtrar los vehículos.
    */
-  async findAllPaginated(dto: PaginationDto) {
+  async findAllPaginated(dto: PaginationDto, query?: string) {
     try {
       const { page, limit } = dto;
       const skip = (page - 1) * limit;
 
       this.logger.info({ page, limit }, 'Consultando vehículos con paginación');
 
+      const filter = query ? { modelo: { $regex: query, $options: 'i' } } : {};
+
       const [data, total] = await Promise.all([
         this.vehiculoModel
-          .find(dto.activeOnly ? { status: true } : {})
+          .find({ ...filter, ...(dto.activeOnly ? { status: true } : {}) })
           .populate('tipo', 'tipo')
           .sort({ createdAt: -1, _id: -1 })
           .skip(skip)
@@ -71,7 +74,10 @@ export class VehiculosService implements ICrudRepository {
           .lean()
           .exec(),
 
-        this.vehiculoModel.countDocuments(),
+        this.vehiculoModel.countDocuments({
+          ...filter,
+          ...(dto.activeOnly ? { status: true } : {}),
+        }),
       ]);
 
       return ApiResponse.success(
@@ -149,7 +155,7 @@ export class VehiculosService implements ICrudRepository {
 
       this.logger.info('vehiculo creado correctamente');
 
-      return ApiResponse.success(data, 'vehiculo creado correctamente');
+      return ApiResponse.success(data, 'vehiculo creado correctamente', 201);
     } catch (error) {
       this.logger.error({ err: error }, 'Error al crear el vehiculo');
       handleError(error);
@@ -308,6 +314,12 @@ export class VehiculosService implements ICrudRepository {
         tipo: 'INSERT',
         ipOrigen: ip,
       });
+
+      return ApiResponse.success(
+        data,
+        'Tipo de vehículo creado correctamente',
+        201,
+      );
     } catch (error) {
       this.logger.error({ err: error }, 'Error al crear el tipo de vehículo');
       handleError(error);

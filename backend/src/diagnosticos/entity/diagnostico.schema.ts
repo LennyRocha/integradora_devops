@@ -30,6 +30,5 @@ export class Diagnostico {
 
 export const DiagnosticoSchema = SchemaFactory.createForClass(Diagnostico);
 
-DiagnosticoSchema.index({ _id: 1 });
 DiagnosticoSchema.index({ createdAt: 1 });
 DiagnosticoSchema.index({ responsable: 1 });

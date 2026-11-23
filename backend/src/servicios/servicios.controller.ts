@@ -47,7 +47,6 @@ export class ServiciosController {
     return this.service.findOne(id);
   }
 
-  @HttpCode(201)
   @HasRol(['administrador'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar un servicio desde administración' })

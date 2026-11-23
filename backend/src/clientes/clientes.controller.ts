@@ -29,8 +29,11 @@ export class ClientesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultar vehículos paginados' })
   @Get()
-  findAllPaginated(@Query() pagination: PaginationDto) {
-    return this.service.findAllPaginated(pagination);
+  findAllPaginated(
+    @Query() pagination: PaginationDto,
+    @Query('query') query?: string,
+  ) {
+    return this.service.findAllPaginated(pagination, query);
   }
 
   @HasRol(['administrador', 'recepcionista'])
@@ -49,7 +52,6 @@ export class ClientesController {
     return this.service.findOne(id);
   }
 
-  @HttpCode(201)
   @HasRol(['administrador', 'recepcionista'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar un vehículo' })

@@ -114,6 +114,7 @@ export class DiagnosticosService {
       return ApiResponse.success(
         savedDiagnostico,
         'Diagnóstico insertado correctamente',
+        201,
       );
     } catch (error) {
       this.logger.error({ err: error }, 'Error al insertar el diagnóstico');

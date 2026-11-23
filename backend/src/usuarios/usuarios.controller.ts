@@ -2,8 +2,9 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
+  HttpStatus,
   Param,
+  ParseFilePipeBuilder,
   Patch,
   Post,
   Put,
@@ -28,6 +29,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { File as MulterFile } from 'multer';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { PaginationDto } from 'src/utils/pagination.dto';
 
 @ApiTags('Gestión de usuarios')
 @Controller('usuarios')
@@ -36,9 +38,20 @@ export class UsuariosController {
 
   @HasRol(['administrador'])
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Consultar usuarios para administración' })
+  @ApiOperation({ summary: 'Consultar usuarios paginados' })
   @Get()
-  findAll(@Query() query?: string) {
+  findAllPaginated(
+    @Query() pagination: PaginationDto,
+    @Query('query') query?: string,
+  ) {
+    return this.service.findAllPaginated(pagination, query);
+  }
+
+  @HasRol(['administrador'])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Consultar usuarios para administración' })
+  @Get('buscar')
+  findAll(@Query('query') query?: string) {
     return this.service.findAll(query);
   }
 
@@ -48,7 +61,7 @@ export class UsuariosController {
     summary: 'Consultar mecánicos disponibles  para administración',
   })
   @Get()
-  findAllMecanicos(@Query() query?: string) {
+  findAllMecanicos(@Query('query') query?: string) {
     return this.service.findAllMecanicos(query);
   }
 
@@ -70,18 +83,30 @@ export class UsuariosController {
     return this.service.findOne(id);
   }
 
-  @HttpCode(201)
   @HasRol(['administrador'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar un usuario desde administración' })
   @ApiConsumes('multipart/form-data')
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
   postOne(
     @CurrentUser() user: AccessTokenClaims,
     @Body() payload: CreateUserDto,
     @Ip() ip: string,
-    @UploadedFile() file?: MulterFile,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /^image\/(jpeg|png)$/,
+        })
+        .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
+        .build({
+          fileIsRequired: false,
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file?: MulterFile,
   ) {
     return this.service.insert(payload, user, ip, file);
   }
@@ -91,12 +116,25 @@ export class UsuariosController {
   @ApiOperation({ summary: 'Actualizar el perfil de un usuario' })
   @ApiConsumes('multipart/form-data')
   @Put('profile')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
   putProfile(
     @CurrentUser() user: AccessTokenClaims,
     @Body() payload: UpdateUserDto,
     @Ip() ip: string,
-    @UploadedFile() file?: MulterFile,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /^image\/(jpeg|png)$/,
+        })
+        .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
+        .build({
+          fileIsRequired: false,
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    file?: MulterFile,
   ) {
     return this.service.updateProfile(user, payload, file, ip);
   }

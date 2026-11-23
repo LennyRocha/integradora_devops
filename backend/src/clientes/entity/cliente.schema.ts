@@ -49,5 +49,3 @@ export class Cliente {
 }
 
 export const ClienteSchema = SchemaFactory.createForClass(Cliente);
-
-ClienteSchema.index({ _id: 1, 'vehiculos.placas': 1 });
