@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
   Ip,
   Param,
   Patch,
@@ -28,11 +27,8 @@ export class VehiculosController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultar vehículos paginados' })
   @Get()
-  findAllPaginated(
-    @Query() pagination: PaginationDto,
-    @Query('query') query?: string,
-  ) {
-    return this.service.findAllPaginated(pagination, query);
+  findAllPaginated(@Query() pagination: PaginationDto) {
+    return this.service.findAllPaginated(pagination, pagination.query);
   }
 
   @HasRol(['administrador', 'recepcionista'])

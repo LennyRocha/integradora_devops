@@ -50,7 +50,7 @@ async function bootstrap() {
   );
 
   // CORS: solo aceptamos el origen del api-gateway (allowlist).
-  const devOrigins = ['http://127.0.0.1:2000'];
+  const devOrigins = ['http://127.0.0.1:2000', 'http://localhost:5173'];
   const origin = process.env.DEBUG === 'true' ? '*' : process.env.FRONTEND_URL;
   app.enableCors({
     origin: [origin, ...devOrigins],

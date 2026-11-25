@@ -91,6 +91,7 @@ export class VehiculosService implements ICrudRepository {
             hasNextPage: page * limit < total,
             hasPreviousPage: page > 1,
           },
+          activeOnly: dto.activeOnly,
         },
         'Vehículos obtenidos correctamente',
       );

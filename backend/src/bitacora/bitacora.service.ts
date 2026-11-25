@@ -106,6 +106,7 @@ export class BitacoraService {
             hasNextPage: page * limit < total,
             hasPreviousPage: page > 1,
           },
+          activeOnly: pagination.activeOnly,
         },
         'Bitácora obtenida correctamente',
       );

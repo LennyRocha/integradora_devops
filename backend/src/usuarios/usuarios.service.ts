@@ -23,12 +23,16 @@ import { DashboardEvent } from 'src/dashboard/interfaces/dashboard-event';
 import { DashboardService } from 'src/dashboard/dashboard.service';
 import Rol from './entity/rol';
 import { PaginationDto } from 'src/utils/pagination.dto';
+import { Orden } from 'src/ordenes/entity/orden.schema';
+import OrdenEstado from 'src/ordenes/entity/orden-estado';
 
 @Injectable()
 export class UsuariosService implements ICrudRepository {
   constructor(
     @InjectModel(Usuario.name)
     private readonly usuarioModel: Model<Usuario>,
+    @InjectModel(Orden.name)
+    private readonly ordenModel: Model<Orden>,
     @InjectPinoLogger(UsuariosService.name)
     private readonly logger: PinoLogger,
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasherPort,
@@ -46,6 +50,7 @@ export class UsuariosService implements ICrudRepository {
       this.logger.info('Obteniendo todos los usuarios');
       const data = await this.usuarioModel.find(
         query ? { nombre: { $regex: query, $options: 'i' } } : {},
+        { contra: 0 },
       );
       return ApiResponse.success(data, 'Usuarios obtenidos correctamente');
     } catch (error) {
@@ -69,6 +74,7 @@ export class UsuariosService implements ICrudRepository {
               status: true,
             }
           : { rol: { $in: [Rol.MECANICO] }, status: true },
+        { contra: 0 },
       );
       return ApiResponse.success(data, 'Usuarios obtenidos correctamente');
     } catch (error) {
@@ -93,7 +99,10 @@ export class UsuariosService implements ICrudRepository {
 
       const [data, total] = await Promise.all([
         this.usuarioModel
-          .find({ ...filter, ...(dto.activeOnly ? { status: true } : {}) })
+          .find(
+            { ...filter, ...(dto.activeOnly ? { status: true } : {}) },
+            { contra: 0 },
+          )
           .sort({ createdAt: -1, _id: -1 })
           .skip(skip)
           .limit(limit)
@@ -117,6 +126,7 @@ export class UsuariosService implements ICrudRepository {
             hasNextPage: page * limit < total,
             hasPreviousPage: page > 1,
           },
+          activeOnly: dto.activeOnly,
         },
         'Usuarios obtenidos correctamente',
       );
@@ -133,7 +143,7 @@ export class UsuariosService implements ICrudRepository {
   async findOne(id: string) {
     try {
       this.logger.info('Obteniendo un usuario');
-      const data = await this.usuarioModel.findById(id);
+      const data = await this.usuarioModel.findById(id, { contra: 0 });
       if (!data) {
         this.logger.warn({ id }, 'Usuario no encontrado');
         throw new NotFoundException('Usuario no encontrado');
@@ -293,6 +303,19 @@ export class UsuariosService implements ICrudRepository {
 
       if (!existing) {
         throw new NotFoundException('Usuario no encontrado');
+      }
+
+      const tieneOrdenesActivas = await this.ordenModel.exists({
+        $and: [
+          { estado: { $nin: [OrdenEstado.ENTREGADO, OrdenEstado.CANCELADO] } },
+          { mecanicosAsignados: existing._id },
+        ],
+      });
+
+      if (tieneOrdenesActivas) {
+        throw new BussinessException(
+          'No se puede desactivar un usuario con órdenes activas',
+        );
       }
 
       await this.usuarioModel.findByIdAndUpdate(

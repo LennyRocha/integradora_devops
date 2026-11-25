@@ -255,6 +255,7 @@ export class OrdenesService {
             hasNextPage: page * limit < total,
             hasPreviousPage: page > 1,
           },
+          activeOnly: dto.activeOnly,
         },
         'Órdenes obtenidas correctamente',
       );

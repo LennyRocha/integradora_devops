@@ -8,6 +8,7 @@ import { BitacoraModule } from 'src/bitacora/bitacora.module';
 import { ArgonPasswordHasher } from 'src/auth/infra/crypto/argon-password.hasher';
 import { PASSWORD_HASHER } from 'src/auth/interfaces/token-ports';
 import { DashboardModule } from 'src/dashboard/dashboard.module';
+import { Orden, OrdenSchema } from 'src/ordenes/entity/orden.schema';
 
 @Module({
   imports: [
@@ -15,6 +16,10 @@ import { DashboardModule } from 'src/dashboard/dashboard.module';
       {
         name: Usuario.name,
         schema: UsuarioSchema,
+      },
+      {
+        name: Orden.name,
+        schema: OrdenSchema,
       },
     ]),
     MultimediaModule,

@@ -79,6 +79,7 @@ export class ServiciosService implements ICrudRepository {
             hasNextPage: page * limit < total,
             hasPreviousPage: page > 1,
           },
+          activeOnly: dto.activeOnly,
         },
         'Servicios obtenidos correctamente',
       );

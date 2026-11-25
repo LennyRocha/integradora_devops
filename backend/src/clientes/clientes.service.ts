@@ -90,6 +90,7 @@ export class ClientesService {
             hasNextPage: page * limit < total,
             hasPreviousPage: page > 1,
           },
+          activeOnly: dto.activeOnly,
         },
         'Clientes obtenidos correctamente',
       );

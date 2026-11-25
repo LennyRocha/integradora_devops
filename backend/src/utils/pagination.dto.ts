@@ -1,5 +1,14 @@
-import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, Max, Min } from 'class-validator';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { Type, Transform } from 'class-transformer';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  Max,
+  Min,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class PaginationDto {
   @IsOptional()
@@ -22,6 +31,16 @@ export class PaginationDto {
   offset: number = 0;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  query?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   @IsBoolean()
   activeOnly: boolean = false;
 }

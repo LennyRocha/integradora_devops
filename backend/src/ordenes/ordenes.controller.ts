@@ -67,11 +67,8 @@ export class OrdenesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultar órdenes anteriores paginados' })
   @Get()
-  findAllPaginated(
-    @Query() pagination: PaginationDto,
-    @Query('query') query?: string,
-  ) {
-    return this.service.findAllPaginated(pagination, query);
+  findAllPaginated(@Query() pagination: PaginationDto) {
+    return this.service.findAllPaginated(pagination, pagination.query);
   }
 
   @HasRol(['todos'])
