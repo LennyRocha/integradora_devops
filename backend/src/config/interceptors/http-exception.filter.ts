@@ -78,7 +78,6 @@ function messageAndDetailsFromException(
 ) {
   const body = exception.getResponse();
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const message =
     body && typeof body === 'object' && 'message' in body
       ? (body.message as string)
