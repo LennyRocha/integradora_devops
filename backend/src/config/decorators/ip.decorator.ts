@@ -5,6 +5,13 @@ import { Request } from 'express';
 export const Ip = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext) => {
     const request: Request = ctx.switchToHttp().getRequest();
-    return request.ip;
+    const ip = request.ip ?? request.socket.remoteAddress ?? '';
+
+    // Convierte direcciones IPv4 representadas como IPv6.
+    if (ip.startsWith('::ffff:')) {
+      return ip.substring(7);
+    }
+
+    return ip;
   },
 );
