@@ -151,7 +151,7 @@ export class DiagnosticosService {
       await this.auditService.auditar({
         usuario: new Types.ObjectId(user.sub),
         accion: `Usuario ${user.sub} eliminó el diagnostico ${id.toString()} para la orden ${numOrden}`,
-        tipo: 'UPDATE',
+        tipo: 'DELETE',
         ipOrigen: ip,
       });
 

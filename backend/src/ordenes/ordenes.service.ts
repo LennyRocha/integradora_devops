@@ -858,7 +858,7 @@ export class OrdenesService {
       await this.auditService.auditar({
         usuario: new Types.ObjectId(user.sub),
         accion: `Usuario ${user.sub} removió una foto de la órden ${id.toString()}`,
-        tipo: 'UPDATE',
+        tipo: 'DELETE',
         ipOrigen: ip,
       });
 

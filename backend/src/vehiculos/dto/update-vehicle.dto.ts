@@ -14,7 +14,7 @@ export class UpdateVehicleDto {
   @MaxLength(25, {
     message: 'La marca no puede tener más de 25 caracteres',
   })
-  marca!: string;
+  marca?: string;
 
   @ApiPropertyOptional({ example: 'Civic' })
   @IsOptional()

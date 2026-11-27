@@ -89,8 +89,8 @@ export class BitacoraService {
           .sort({ createdAt: -1, _id: -1 })
           .skip(skip)
           .limit(limit)
-          .populate('usuario')
-          .lean(),
+          .populate('usuario', 'correo')
+          .lean({ virtuals: true }),
 
         this.bitacoraModel.countDocuments(),
       ]);
