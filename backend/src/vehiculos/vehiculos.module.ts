@@ -8,6 +8,7 @@ import {
 import { MongooseModule } from '@nestjs/mongoose';
 import { BitacoraModule } from 'src/bitacora/bitacora.module';
 import { Vehiculo, VehiculoSchema } from './entity/vehiculo.schema';
+import { TiposVehiculosController } from './tipos-vehiculos.controller';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { Vehiculo, VehiculoSchema } from './entity/vehiculo.schema';
     BitacoraModule,
   ],
   providers: [VehiculosService],
-  controllers: [VehiculosController],
+  controllers: [VehiculosController, TiposVehiculosController],
   exports: [VehiculosService],
 })
 export class VehiculosModule {}

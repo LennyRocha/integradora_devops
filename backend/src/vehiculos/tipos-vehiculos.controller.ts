@@ -8,18 +8,18 @@ import { VehiculosService } from './vehiculos.service';
 import { CreateVehicleTypeDto } from './dto/create-vehicle-type.dto';
 
 @Controller('tipos-vehiculos')
-export class VehiculosController {
+export class TiposVehiculosController {
   constructor(private readonly service: VehiculosService) {}
 
-  @HasRol(['administrador'])
+  @HasRol(['todos'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultar tipos de vehículos para administración' })
-  @Get('tipos')
+  @Get()
   findAllTiposVehiculos() {
     return this.service.findAllTiposVehiculos();
   }
 
-  @HasRol(['administrador'])
+  @HasRol(['administrador', 'recepcionista'])
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Registrar un tipo de vehículo para administración',
@@ -33,7 +33,7 @@ export class VehiculosController {
     return this.service.insertTipoVehiculo(payload, user, ip);
   }
 
-  @HasRol(['administrador'])
+  @HasRol(['administrador', 'recepcionista'])
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Cambiar estado de un tipo de vehículo para administración',

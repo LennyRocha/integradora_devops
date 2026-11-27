@@ -108,7 +108,10 @@ export class VehiculosService implements ICrudRepository {
   async findOne(id: string) {
     try {
       this.logger.info('Obteniendo un vehiculo');
-      const data = await this.vehiculoModel.findById(id);
+      const data = await this.vehiculoModel
+        .findById(id)
+        .populate('tipo', 'tipo')
+        .exec();
       if (!data) {
         this.logger.warn({ id }, 'Vehiculo no encontrado');
         throw new NotFoundException('vehiculo no encontrado');
