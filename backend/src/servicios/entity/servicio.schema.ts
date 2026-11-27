@@ -8,7 +8,7 @@ export class Servicio {
   @Prop({ required: true, maxLength: 50 })
   nombre!: string;
 
-  @Prop({ required: true, maxLength: 75 })
+  @Prop({ required: true, maxLength: 100 })
   descripcion!: string;
 
   @Prop({ required: true, type: Types.Decimal128, max: 999999.99 })

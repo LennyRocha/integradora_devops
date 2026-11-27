@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ServiciosService } from './servicios.service';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -17,6 +18,7 @@ import type { AccessTokenClaims } from 'src/auth/interfaces/access-token-claims'
 import { CurrentUser } from 'src/config/decorators/current-user.decorator';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { PaginationDto } from 'src/utils/pagination.dto';
 
 @Controller('servicios')
 export class ServiciosController {
@@ -25,9 +27,17 @@ export class ServiciosController {
   @HasRol(['todos'])
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Consultar servicios para administración' })
-  @Get()
+  @Get('buscar')
   findAll() {
     return this.service.findAll();
+  }
+
+  @HasRol(['administrador', 'recepcionista'])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Consultar servicios paginados' })
+  @Get()
+  findAllPaginated(@Query() pagination: PaginationDto) {
+    return this.service.findAllPaginated(pagination, pagination.query);
   }
 
   @Public()

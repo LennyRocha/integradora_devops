@@ -15,8 +15,8 @@ export class CreateServiceDto {
   @IsNotEmpty({
     message: 'La descripción es obligatoria',
   })
-  @MaxLength(75, {
-    message: 'La descripción no puede tener más de 75 caracteres',
+  @MaxLength(100, {
+    message: 'La descripción no puede tener más de 100 caracteres',
   })
   descripcion!: string;
 

@@ -11,8 +11,8 @@ export class UpdateServiceDto {
 
   @ApiPropertyOptional({ example: 'Cambio de aceite y filtro de aceite' })
   @IsOptional()
-  @MaxLength(75, {
-    message: 'La descripción no puede tener más de 75 caracteres',
+  @MaxLength(100, {
+    message: 'La descripción no puede tener más de 100 caracteres',
   })
   descripcion?: string;
 
