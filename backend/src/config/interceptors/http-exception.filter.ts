@@ -78,10 +78,15 @@ function messageAndDetailsFromException(
 ) {
   const body = exception.getResponse();
 
-  const message =
-    body && typeof body === 'object' && 'message' in body
-      ? (body.message as string)
-      : fallbackMessage;
+  let message: string;
+  if (typeof body === 'string') {
+    message = body;
+  } else {
+    message =
+      body && typeof body === 'object' && 'message' in body
+        ? (body.message as string)
+        : fallbackMessage;
+  }
 
   const details =
     typeof body === 'object' && body !== null
