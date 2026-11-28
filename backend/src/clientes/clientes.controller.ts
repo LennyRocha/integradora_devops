@@ -19,6 +19,7 @@ import { PaginationDto } from 'src/utils/pagination.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientVehicleDto } from './dto/update-client-vehicle.dto';
+import { CreateClientVehicleDto } from './dto/create-client-vehicle.dto';
 
 @Controller('clientes')
 export class ClientesController {
@@ -58,6 +59,19 @@ export class ClientesController {
     @Ip() ip: string,
   ) {
     return this.service.insert(payload, user, ip);
+  }
+
+  @HasRol(['administrador', 'recepcionista'])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualizar un vehículo' })
+  @Patch('vehiculo/:id')
+  setVehicle(
+    @Param('id', ParseObjectIdPipe) id: string,
+    @CurrentUser() user: AccessTokenClaims,
+    @Body() payload: CreateClientVehicleDto,
+    @Ip() ip: string,
+  ) {
+    return this.service.addClientVehicle(id, payload, user, ip);
   }
 
   @HasRol(['administrador', 'recepcionista'])

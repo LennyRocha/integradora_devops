@@ -50,7 +50,7 @@ export class CreateClientDto {
     message: 'El número de teléfono no puede tener menos de 10 caracteres',
   })
   @IsPhoneNumber('MX', {
-    message: 'El número de teléfono no es válido',
+    message: 'El número de teléfono no es válido en México',
   })
   telefono!: string;
 

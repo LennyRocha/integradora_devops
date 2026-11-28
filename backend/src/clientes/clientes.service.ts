@@ -16,6 +16,7 @@ import { UpdateClientVehicleDto } from './dto/update-client-vehicle.dto';
 import { VehiculosService } from 'src/vehiculos/vehiculos.service';
 import { DashboardEvent } from 'src/dashboard/interfaces/dashboard-event';
 import { DashboardService } from 'src/dashboard/dashboard.service';
+import { CreateClientVehicleDto } from './dto/create-client-vehicle.dto';
 
 @Injectable()
 export class ClientesService {
@@ -70,6 +71,13 @@ export class ClientesService {
           .sort({ createdAt: -1, _id: -1 })
           .skip(skip)
           .limit(limit)
+          .populate({
+            path: 'vehiculos.vehiculo',
+            populate: {
+              path: 'tipo',
+              select: 'tipo',
+            },
+          })
           .lean({ virtuals: true })
           .exec(),
 
@@ -154,6 +162,7 @@ export class ClientesService {
 
       const data = await this.clienteModel.create({
         ...payload,
+        vehiculos: payload.vehiculos ?? [],
         createdBy: user.sub,
       });
 
@@ -175,6 +184,7 @@ export class ClientesService {
       handleError(error);
     }
   }
+
   /**
    * Administador actualiza un cliente existente.
    * @param id - El ID del cliente a actualizar.
@@ -275,6 +285,52 @@ export class ClientesService {
 
   /**
    * Actualiza un vehículo específico de un cliente.
+   * @param id - El ID del cliente.
+   * @param payload - Los datos a actualizar del vehículo.
+   * @param user - Las credenciales del usuario que realiza la acción.
+   * @param ip - La dirección IP del cliente.
+   */
+  async addClientVehicle(
+    id: string,
+    payload: CreateClientVehicleDto,
+    user: AccessTokenClaims,
+    ip?: string,
+  ) {
+    this.logger.info('Agregando vehículo a un cliente');
+    try {
+      const client = await this.clienteModel.findById(id);
+      if (!client) {
+        throw new NotFoundException('cliente no encontrado');
+      }
+      const vehicle = {
+        ...payload,
+        createdBy: new Types.ObjectId(user.sub),
+      };
+      client.vehiculos?.push(vehicle);
+      await client.save();
+
+      await this.auditService.auditar({
+        usuario: new Types.ObjectId(user.sub),
+        accion: `Usuario ${user.sub} agregó un vehículo al cliente ${id.toString()}`,
+        tipo: 'INSERT',
+        ipOrigen: ip,
+      });
+
+      return ApiResponse.success(
+        vehicle,
+        'vehículo agregado al cliente correctamente',
+      );
+    } catch (error) {
+      this.logger.error(
+        { err: error },
+        'Error al agregar el vehículo al cliente',
+      );
+      handleError(error);
+    }
+  }
+
+  /**
+   * Actualiza un vehículo específico de un cliente.
    * @param clientId - El ID del cliente.
    * @param vehicleId - El ID del vehículo a actualizar.
    * @param payload - Los datos a actualizar del vehículo.
@@ -295,7 +351,7 @@ export class ClientesService {
         throw new NotFoundException('cliente no encontrado');
       }
 
-      const vehicle = client.vehiculos.id(vehicleId);
+      const vehicle = client.vehiculos?.id(vehicleId);
 
       if (!vehicle) {
         throw new NotFoundException('Vehículo no encontrado para este cliente');
@@ -359,7 +415,7 @@ export class ClientesService {
       if (!client) {
         throw new NotFoundException('cliente no encontrado');
       }
-      const hasVehicle = client.vehiculos.some(
+      const hasVehicle = client.vehiculos?.some(
         (vehiculo) => vehiculo._id.toString() === vehicleId,
       );
       return hasVehicle;

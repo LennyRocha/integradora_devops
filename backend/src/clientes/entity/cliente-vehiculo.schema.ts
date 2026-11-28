@@ -15,7 +15,7 @@ export class ClienteVehiculo {
   })
   vehiculo!: Types.ObjectId;
 
-  @Prop({ required: true, maxLength: 15, unique: true })
+  @Prop({ required: true, maxLength: 15 })
   placas!: string;
 
   @Prop({ required: true, maxLength: 20 })

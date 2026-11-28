@@ -30,9 +30,9 @@ export class Cliente {
 
   @Prop({
     type: [ClienteVehiculoSchema],
-    default: [],
+    required: false,
   })
-  vehiculos!: Types.DocumentArray<ClienteVehiculo>;
+  vehiculos?: Types.DocumentArray<ClienteVehiculo>;
 
   @Prop({ type: Types.ObjectId, ref: 'Usuario', name: 'created_by' })
   createdBy?: Types.ObjectId;
@@ -49,3 +49,13 @@ export class Cliente {
 }
 
 export const ClienteSchema = SchemaFactory.createForClass(Cliente);
+
+ClienteSchema.index(
+  { 'vehiculos.placas': 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      'vehiculos.placas': { $type: 'string' },
+    },
+  },
+);
